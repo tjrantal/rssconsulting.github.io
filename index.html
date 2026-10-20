@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rantalainen Sports Science Consulting</title>
+  <meta name="description" content="Timo Rantalainen, PhD: real-time signal and image analysis, computer vision and applied machine learning for sport and health technology. Jyväskylä, Finland.">
+  <link rel="icon" href="assets/img/flightplate.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="assets/img/flightplate.png" alt="">
+        <span>Rantalainen Sports Science<small>Consulting · Jyväskylä, Finland</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html" aria-current="page">Home</a></li>
+          <li><a href="projects.html">Projects</a></li>
+          <li><a href="cv.html">CV</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Timo Rantalainen, PhD · Docent</p>
+        <h1>Numerical analysis that runs in real time, on the device in your hand.</h1>
+        <p class="lede">
+          I build measurement tools for sport and health technology: signal processing, computer vision
+          and applied machine learning, taken from a Python prototype to Android and iOS apps that
+          run in real time on the phone.
+        </p>
+        <div class="button-row">
+          <a class="button" href="projects.html">See the projects</a>
+          <a class="button secondary" href="cv.html">Read my CV</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="stat-row">
+          <div class="stat"><strong>15+ years</strong><span>of biomechanics and sport science research</span></div>
+          <div class="stat"><strong>168</strong><span>peer-reviewed articles, 4,500+ citations</span></div>
+          <div class="stat"><strong>Python · C++ · Java</strong><span>Android NDK, OpenCV, Vulkan compute, ONNX</span></div>
+          <div class="stat"><strong>Open source</strong><span>BoneJ, ImageJ plugins, Android apps</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2>What I do</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Real-time signal processing</h3>
+            <p>Low-latency audio and inertial-sensor pipelines: FFTs, spectral analysis and multi-pitch
+              estimation running at interactive frame rates on mobile hardware.</p>
+          </article>
+          <article class="card">
+            <h3>Computer vision and estimation</h3>
+            <p>Camera calibration, sub-pixel image alignment, rolling-shutter modelling and nonlinear
+              least-squares fitting of physical models, with honest uncertainty estimates.</p>
+          </article>
+          <article class="card">
+            <h3>Applied machine learning</h3>
+            <p>Labelling custom data sets, fine-tuning detectors such as YOLOX, and deploying the
+              trained models to phones through ONNX and OpenCV DNN.</p>
+          </article>
+          <article class="card">
+            <h3>Research-grade validation</h3>
+            <p>Methods that are written up, cross-validated between devices and reproducible. Measurement
+              tools that stand up in peer review as well as in the field.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2>Featured work</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Flight Plate Monitor &amp; Control</h3>
+            <p>Phone-based disc golf launch analysis: speed, spin, launch, nose, hyzer and wobble from
+              120 fps video, using a retrained YOLOX detector and a 17-parameter rolling-shutter fit.</p>
+            <a class="card-link" href="projects.html#flight-plate">Read more</a>
+          </article>
+          <article class="card">
+            <h3>Audio FFT Visualise</h3>
+            <p>Real-time spectrum and multi-pitch display for string and pipe instruments, with
+              low-latency native audio and GPU (Vulkan) compute for the FFT and pitch salience.</p>
+            <a class="card-link" href="projects.html#audio-visualise">Read more</a>
+          </article>
+          <article class="card">
+            <h3>Open-source imaging tools</h3>
+            <p>A pQCT bone analysis plugin, partly integrated into BoneJ, and ImageJ tools for
+              segmenting MRI slices.</p>
+            <a class="card-link" href="projects.html#imaging">Read more</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2>Get in touch</h2>
+        <p>I am available for consulting on algorithm development, sensor and video analysis, and
+          sport technology product development.</p>
+        <ul class="link-list">
+          <li><a href="mailto:tjrantal@gmail.com">tjrantal@gmail.com</a></li>
+          <li><a href="https://github.com/tjrantal">GitHub</a></li>
+          <li><a href="https://orcid.org/0000-0001-6977-4782">ORCID</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© 2026 Rantalainen Sports Science Consulting, Jyväskylä, Finland</span>
+      <span><a href="https://github.com/tjrantal">github.com/tjrantal</a></span>
+    </div>
+  </footer>
+</body>
+</html>

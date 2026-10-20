@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projects · Rantalainen Sports Science Consulting</title>
+  <meta name="description" content="Project examples: real-time disc golf launch analysis, real-time audio pitch analysis, and open-source bone and MRI image analysis tools.">
+  <link rel="icon" href="assets/img/flightplate.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="assets/img/flightplate.png" alt="">
+        <span>Rantalainen Sports Science<small>Consulting · Jyväskylä, Finland</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="projects.html" aria-current="page">Projects</a></li>
+          <li><a href="cv.html">CV</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">Projects</p>
+      <h1>Hard numerical problems, solved on a phone.</h1>
+      <p class="lede">
+        The two featured apps have the same constraint: the analysis has to finish fast enough to
+        give the user feedback while they are still playing or throwing. Below them are open-source
+        imaging tools from my research career.
+      </p>
+    </section>
+
+    <!-- ===================== Flight plate ===================== -->
+    <article class="project" id="flight-plate">
+      <div class="project-icon"><img src="assets/img/flightplate.png" alt="Flight Plate Monitor app icon"></div>
+      <div>
+        <h2>Flight Plate Monitor &amp; Flight Plate Control</h2>
+        <p class="subtitle">Disc golf launch analysis from a phone lying on the ground · Android (Java), iOS (C++/Swift), Python prototypes</p>
+
+        <p>
+          A printed 3 × 3 dot pattern is stuck to the underside of a disc, and a phone on the ground films
+          the throw from below at 120 fps. Within a couple of seconds the <strong>Flight Plate Monitor</strong>
+          app announces the disc's <strong>speed, spin, launch angle, nose angle, hyzer angle and wobble</strong>.
+          A second phone runs the <strong>Flight Plate Control</strong> app, which shows the live preview, guides the
+          user through camera calibration and receives the results over local Wi-Fi.
+        </p>
+        <p>
+          The project was inspired by commercial launch monitors such as
+          <a href="https://shop.techdisc.com/">TechDisc</a> (a sensor disc) and
+          <a href="https://ripreaderapp.com/">RipReader</a> (a phone app). It explores the measurement problem
+          rather than competing with them.
+        </p>
+
+        <h3>Why it is hard</h3>
+        <p>
+          The disc passes 1–1.7 m above the lens and moves at up to 20 m/s, spinning at around 900 rpm.
+          It is visible for only 4–18 frames. The phone's rolling shutter reads the sensor row by row over
+          about 5 ms, and in that time the disc moves around 10 cm and turns up to 27°. Ignoring this
+          shears the image of the disc and produces false tilt angles.
+        </p>
+
+        <h3>Pipeline</h3>
+        <ol class="pipeline">
+          <li><strong>Cascaded trigger.</strong> The camera records continuously into a 3 s ring buffer. A
+            cheap 160 × 90 frame-difference motion gate runs on every frame, and the neural detector
+            runs only when something moves.</li>
+          <li><strong>Retrained disc detector (ML).</strong> I fine-tuned a <strong>YOLOX-nano</strong> detector
+            from pretrained weights on a data set I labelled myself (frames from my own throw videos, labelled
+            with LabelImg and converted to COCO format). It was exported to ONNX and runs on the phone through
+            OpenCV DNN at 320 × 180 input. A lattice check with normalised cross-correlation then rejects
+            people, pets and clothing that the detector lets through.</li>
+          <li><strong>Sub-pixel pattern nodes.</strong> A robust Gauss–Newton (Lucas–Kanade family) alignment of
+            a blurred 300 dpi template, using an 8-dof homography and Huber-weighted IRLS over a three-level
+            pyramid, locates the nine nodes far more accurately than the 0.5–0.9 px of blob detection.</li>
+          <li><strong>Rolling-shutter physics fit.</strong> A 17-parameter model, combining constant-acceleration
+            translation with torque-free symmetric-top rotation (spin plus wobble), is fitted with
+            Levenberg–Marquardt to every node in every frame at once. Each node is evaluated at the moment
+            its sensor row was read out.</li>
+          <li><strong>Metrics with uncertainty.</strong> All metrics come from the fitted parameters, not from
+            frame-to-frame differences. The accelerometer gives the direction of gravity, and the parameter
+            covariance is propagated to a ± value for every metric.</li>
+        </ol>
+
+        <h3>Validation</h3>
+        <p>
+          Three phones (two Samsung A16s and an iPhone 12 Pro) lay side by side and recorded the same
+          throws independently. The pooled between-phone SDs were:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Speed</th><th>Spin</th><th>Launch</th><th>Nose</th><th>Hyzer</th><th>Wobble</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>0.31 km/h</td><td>3.0 rpm</td><td>1.7°</td><td>2.8°</td><td>1.4°</td><td>0.5°</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          iOS does not report its rolling-shutter readout time. I estimated it from the throws themselves
+          by fitting it as an additional free parameter. On the Android phones the method recovered the
+          readout time the phone reports to within about 0.2 ms. For the iPhone it gave 2.4 ms rather than
+          the 5 ms assumed until then, and the correction cut the iPhone's nose-angle disagreement with the
+          Android phones from 5.5° to 1.6° RMS.
+        </p>
+
+        <h3>Engineering</h3>
+        <p>
+          The algorithm was prototyped in Python, implemented in Java for Android, and ported line for line
+          to portable C++ for iOS. Calibration uses Zhang's method with a guided set of poses. On the iPhone
+          it can instead use Apple's factory lens data, for which I measured the undocumented mapping to
+          the binned 120 fps video mode (0.12 px residual).
+        </p>
+
+        <ul class="tags">
+          <li>Java</li><li>C++</li><li>Swift</li><li>Python</li><li>OpenCV</li><li>YOLOX</li><li>ONNX</li>
+          <li>Levenberg–Marquardt</li><li>rolling shutter</li><li>Camera2</li><li>Wi-Fi / NSD</li>
+        </ul>
+
+        <ul class="link-list">
+          <li><a href="flightplate.html">User guide and printable pattern</a></li>
+          <li><a href="https://youtu.be/URdH9I29Fhw">Calibration video (English)</a></li>
+          <li><a href="https://youtu.be/bwQ6YFthM8U">Calibration video (Finnish)</a></li>
+          <li><a href="https://youtu.be/XtTCleyAVVY">How to use (English)</a></li>
+          <li><a href="https://youtu.be/tlefmiJvOeU">How to use (Finnish)</a></li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ===================== Audio visualise ===================== -->
+    <article class="project" id="audio-visualise">
+      <div class="project-icon"><img src="assets/img/audiovisualise.png" alt="Audio FFT Visualise app icon"></div>
+      <div>
+        <h2>Audio FFT Visualise</h2>
+        <p class="subtitle">Real-time spectrum and multiple-pitch estimation · Android (Java, C++/NDK, Vulkan compute)</p>
+
+        <p>
+          A free Android app that shows the live spectrum of what the microphone hears and estimates the
+          fundamental frequencies of the notes being played. It is designed for string and pipe instruments,
+          where several notes and their harmonics overlap.
+        </p>
+
+        <h3>Why it is hard</h3>
+        <p>
+          Identifying a single pitch is easy. Identifying several simultaneous pitches is not, because the
+          harmonics of one note fall on top of the fundamentals and harmonics of the others. The app
+          implements <strong>Klapuri's (2006) multiple-F0 estimation</strong>, which whitens the spectrum,
+          computes a harmonic-summation salience for every F0 candidate, then iteratively picks the strongest
+          candidate and cancels its harmonics. All of this has to be repeated for every audio frame fast
+          enough for the display to keep up with the music.
+        </p>
+
+        <h3>How it runs in real time</h3>
+        <ol class="pipeline">
+          <li><strong>Low-latency capture.</strong> Audio is recorded with Google's Oboe library in native C++
+            in low-latency performance mode, and handed to Java through JNI.</li>
+          <li><strong>GPU FFT.</strong> The FFT runs as a Vulkan compute shader on the phone's GPU (the
+            successor to an earlier RenderScript implementation).</li>
+          <li><strong>GPU salience.</strong> The harmonic-summation salience for all F0 candidates is computed in
+            parallel on the GPU, using precomputed index and weight tables for the harmonics.</li>
+          <li><strong>Custom rendering.</strong> The spectrum and the detected notes are drawn on a dedicated
+            surface view.</li>
+        </ol>
+
+        <ul class="tags">
+          <li>Java</li><li>C++</li><li>Android NDK</li><li>Oboe</li><li>Vulkan compute</li><li>FFT</li><li>DSP</li>
+        </ul>
+
+        <ul class="link-list">
+          <li><a href="https://play.google.com/store/apps/details?id=timo.home.audiovisualise">Google Play</a></li>
+          <li><a href="https://github.com/tjrantal/PolyphonicPitchDetection">Klapuri implementation (GitHub)</a></li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ===================== Imaging tools ===================== -->
+    <section id="imaging">
+      <h2>Open-source imaging tools</h2>
+      <p>
+        Tools from my research career that have been used by other research groups.
+      </p>
+      <div class="grid">
+        <article class="card">
+          <h3>pQCT analysis plugin for ImageJ / BoneJ</h3>
+          <p>
+            ImageJ / Fiji tools for Stratec pQCT scans. They cover conventional bone analyses (cortical area,
+            volumetric BMD), regional density distribution around the cortex, bone marrow density, and
+            soft-tissue analyses (muscle and subcutaneous fat cross-sectional area). The density distribution
+            method was integrated into BoneJ, the standard open-source toolkit for bone image analysis, and is
+            used by other research groups.
+          </p>
+          <ul class="tags"><li>Java</li><li>ImageJ / Fiji</li><li>image analysis</li></ul>
+          <ul class="link-list">
+            <li><a href="https://github.com/tjrantal/pQCT">Source (GitHub)</a></li>
+            <li><a href="https://bonej.org/densitydistribution">BoneJ documentation</a></li>
+            <li><a href="https://github.com/tjrantal/densityDistributionHowTo">How-to</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>MRI slice segmentation: RoiAnalyzer</h3>
+          <p>
+            An ImageJ plugin for computer-assisted segmentation of regions of interest in MRI slices, built
+            for the MRI segmentation in Daniel Belavý's Spine Activity project. Companion plugins add
+            LiveWire boundary tracing and threshold-guided region selection.
+          </p>
+          <ul class="tags"><li>Java</li><li>ImageJ</li><li>MRI</li><li>segmentation</li></ul>
+          <ul class="link-list">
+            <li><a href="https://github.com/tjrantal/RoiAnalyzer">RoiAnalyzer (GitHub)</a></li>
+            <li><a href="https://github.com/tjrantal/imageJLiveWirePlugin">LiveWire plugin</a></li>
+            <li><a href="https://github.com/tjrantal/IJEncircler">IJEncircler</a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© 2026 Rantalainen Sports Science Consulting, Jyväskylä, Finland</span>
+      <span><a href="https://github.com/tjrantal">github.com/tjrantal</a></span>
+    </div>
+  </footer>
+</body>
+</html>
