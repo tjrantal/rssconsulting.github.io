@@ -62,8 +62,8 @@
 
         <h3>Why it is hard</h3>
         <p>
-          The disc passes 1–1.7 m above the lens and moves at up to 20 m/s, spinning at around 900 rpm.
-          It is visible for only 4–18 frames. The phone's rolling shutter reads the sensor row by row over
+          The disc passes 1–1.7 m above the lens, typically at around 20 m/s (strong players approach
+          40 m/s), spinning at around 900 rpm. It is visible for only 4–18 frames. The phone's rolling shutter reads the sensor row by row over
           about 5 ms, and in that time the disc moves around 10 cm and turns up to 27°. Ignoring this
           shears the image of the disc and produces false tilt angles.
         </p>
@@ -71,13 +71,19 @@
         <h3>Pipeline</h3>
         <ol class="pipeline">
           <li><strong>Cascaded trigger.</strong> The camera records continuously into a 3 s ring buffer. A
-            cheap 160 × 90 frame-difference motion gate runs on every frame, and the neural detector
-            runs only when something moves.</li>
-          <li><strong>Retrained disc detector (ML).</strong> I fine-tuned a <strong>YOLOX-nano</strong> detector
-            from pretrained weights on a data set I labelled myself (frames from my own throw videos, labelled
-            with LabelImg and converted to COCO format). It was exported to ONNX and runs on the phone through
-            OpenCV DNN at 320 × 180 input. A lattice check with normalised cross-correlation then rejects
-            people, pets and clothing that the detector lets through.</li>
+            cheap 160 × 90 frame-difference motion gate runs on every frame, and the neural detector, which
+            could keep up with every other frame, runs only when something moves, to save battery and heat.</li>
+          <li><strong>Bespoke pattern detector (ML).</strong> I designed and trained a small CenterNet-style
+            convolutional network from scratch that finds the printed pattern and its bounding box. It has about
+            130 000 parameters. The training set has about 12 000 frames from three phones, each reviewed by
+            hand: throws, false alarms such as faces, hands and phones, and calibration sessions with the
+            pattern held without a disc. It runs on the phone's CPU (LiteRT on Android, OpenCV DNN on the
+            iPhone) and takes about 11 ms per frame on a Samsung Galaxy A16, three times faster than the
+            YOLOX-nano detector it replaced. The trigger therefore checks more than 50 frames per second.
+            That rate is what makes the fastest throws detectable: at 40 m/s (about 90 mph, close to the
+            fastest drives recorded with radar) the disc crosses the camera's view in 35–60 ms, and the
+            trigger still sees it two or three times on the way through. A lattice check with normalised
+            cross-correlation then rejects people, pets and clothing that the detector lets through.</li>
           <li><strong>Sub-pixel pattern nodes.</strong> A robust Gauss–Newton (Lucas–Kanade family) alignment of
             a blurred 300 dpi template, using an 8-dof homography and Huber-weighted IRLS over a three-level
             pyramid, locates the nine nodes far more accurately than the 0.5–0.9 px of blob detection.</li>
@@ -122,7 +128,7 @@
         </p>
 
         <ul class="tags">
-          <li>Java</li><li>C++</li><li>Swift</li><li>Python</li><li>OpenCV</li><li>YOLOX</li><li>ONNX</li>
+          <li>Java</li><li>C++</li><li>Swift</li><li>Python</li><li>OpenCV</li><li>PyTorch</li><li>LiteRT</li><li>ONNX</li>
           <li>Levenberg–Marquardt</li><li>rolling shutter</li><li>Camera2</li><li>Wi-Fi / NSD</li>
         </ul>
 
